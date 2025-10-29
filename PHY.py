@@ -29,17 +29,26 @@ import matplotlib.pyplot as plt
 from scipy.io import wavfile
 import localFunctions as lf
 import warnings
-import samplerate
+#import samplerate
+import librosa
 import json
 import multiprocessing as mp
 import logging
 import tqdm
 from functools import partial
+'''
 from pyroomacoustics.directivities import (
     DirectivityPattern,
     DirectionVector,
     CardioidFamily
 )
+'''
+
+# NEW
+from pyroomacoustics.directivities import (
+    DirectionVector,
+    CardioidFamily,
+    )  # still available
 
 # logging
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -142,34 +151,58 @@ def setup():
 
     logger.info('Total amount of anchor node positions: {}'.format(np.size(anchor_locs, axis=0)))
     # Plot room with directivities
-    pattern_enum_anchor = DirectivityPattern.CARDIOID
-    pattern_enum_mn_test = DirectivityPattern.OMNI
-    pattern_enum_mn_train = DirectivityPattern.OMNI
+    #p = 0 → figure-eight, 0.25 → hypercardioid, 0.5 → cardioid, 0.75 → subcardioid, 1.0 → omni
+    pattern_enum_anchor = 0.5 #DirectivityPattern.CARDIOID
+    pattern_enum_mn_test = 1.0 #DirectivityPattern.OMNI
+    pattern_enum_mn_train = 1.0 #DirectivityPattern.OMNI
 
     dirs_mn_test = []
     dirs_mn_train_dev = []
     for mn in mn_loc_test_set:
+        '''
         dir_obj_mn_test = CardioidFamily(
             orientation=DirectionVector(azimuth=mn[3], colatitude=mn[4], degrees=True),
             pattern_enum=pattern_enum_mn_test
         )
+        '''
+
+        dir_obj_mn_test = CardioidFamily(
+        orientation=DirectionVector(azimuth=mn[3], colatitude=mn[4], degrees=True),
+        p=pattern_enum_mn_test,  # e.g., 0.5 for cardioid
+        gain=1.0)
+
         dirs_mn_test.append(dir_obj_mn_test)
 
     for mn in mn_loc_traindev_set:
+        '''
         dir_obj_mn_traindev = CardioidFamily(
             orientation=DirectionVector(azimuth=mn[3], colatitude=mn[4], degrees=True),
             pattern_enum=pattern_enum_mn_train
         )
+        '''
+        dir_obj_mn_traindev = CardioidFamily(
+        orientation=DirectionVector(azimuth=mn[3], colatitude=mn[4], degrees=True),
+        p=pattern_enum_mn_train,  # e.g., 0.5 for cardioid
+        gain=1.0)
+
         dirs_mn_train_dev.append(dir_obj_mn_traindev)
 
     dirs_mn = dirs_mn_test + dirs_mn_train_dev
 
     dirs_anchers = []
     for anchor in anchor_locs:
+        '''
         dir_obj_ancher = CardioidFamily(
             orientation=DirectionVector(azimuth=anchor[3], colatitude=anchor[4], degrees=True),
             pattern_enum=pattern_enum_anchor
         )
+        '''
+
+        dir_obj_ancher = CardioidFamily(
+        orientation=DirectionVector(azimuth=anchor[3], colatitude=anchor[4], degrees=True),
+        p=pattern_enum_anchor,  # e.g., 0.5 for cardioid
+        gain=1.0)
+
         dirs_anchers.append(dir_obj_ancher)
 
     if config["plot_room"]:
@@ -411,7 +444,9 @@ def sim_position(sim_nr, mic_locs, sp_locs, mic_dirs, sp_dirs, fs, fs_source, fs
             # if the microphone sample rate differs from the room (=speaker) sample rate,
             if fs_source != fs_mic:
                 fs_ratio = float(fs_mic) / float(fs_source)
-                mic_signal = samplerate.resample(new_rx_audio, fs_ratio, "sinc_best")
+                #mic_signal = samplerate.resample(new_rx_audio, fs_ratio, "sinc_best")
+                mic_signal = librosa.resample(y=new_rx_audio, orig_sr=float(fs_source), target_sr=float(fs_mic), res_type = "kaiser_best")
+
 
             else:  # in the sample rates are identical, no up/down sampling is required
                 mic_signal = new_rx_audio

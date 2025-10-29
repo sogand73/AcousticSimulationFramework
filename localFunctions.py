@@ -8,14 +8,24 @@ import librosa as lbr
 import scipy as sp
 from numpy.linalg import inv
 import plotly.graph_objects as go
-import samplerate
+#import samplerate
+import librosa
 from scipy.io import wavfile
 from shapely.geometry import Polygon, Point
+
+'''
 from pyroomacoustics.directivities import (
     DirectivityPattern,
     DirectionVector,
     CardioidFamily
-)
+)'''
+
+# NEW
+from pyroomacoustics.directivities import (
+    DirectionVector,
+    CardioidFamily
+    )  # still available
+
 import copy
 from collections import defaultdict
 import math
@@ -24,7 +34,7 @@ import itertools
 import random
 import numba
 from numba import jit
-import tikzplotlib
+#import tikzplotlib
 with open('config.json') as json_file:
     config = json.load(json_file)
 
@@ -386,7 +396,7 @@ def plot_RIR(title, rir, fs, savename, max_x):
     image_format = 'svg'  # e.g .png, .svg, etc.
     image_name = 'Sim_output_data\\svg_figures\\'+ savename +'.svg'
     fig.savefig(image_name, format=image_format, dpi=1200)
-    tikzplotlib.save('Sim_output_data\\svg_figures\\'+ savename +'.tex', float_format=".5g")
+    #tikzplotlib.save('Sim_output_data\\svg_figures\\'+ savename +'.tex', float_format=".5g")
     plt.show()
 
 # def plot_RIR(title, rir, fs):
@@ -626,7 +636,8 @@ def downsample_LPF(signal, n_samples):
     ratio =float(n_samples)/float(np.size(signal))
 
     if ratio != 0:
-        signal_down = samplerate.resample(signal, ratio, "sinc_best")
+        #signal_down = samplerate.resample(signal, ratio, "sinc_best")
+        signal_down = librosa.resample(y=signal, orig_sr=float(np.size(signal)), target_sr=float(n_samples), res_type = "kaiser_best")
 
     else:  # in the sample rates are identical, no up/down sampling is required
         signal_down = signal
@@ -865,7 +876,9 @@ def resample_source_to_mic(fs_source, fs_mic, chirp_orig):
         re_sampled_orig_chirp_signal = np.zeros((1, new_length))
 
         # why sinc: http://www.mega-nerd.com/SRC/api_misc.html#ErrorReporting
-        re_sampled_orig_chirp_signal = samplerate.resample(chirp_orig, fs_ratio, "sinc_best")
+        #re_sampled_orig_chirp_signal = samplerate.resample(chirp_orig, fs_ratio, "sinc_best")
+        re_sampled_orig_chirp_signal = librosa.resample(y=chirp_orig, orig_sr=float(fs_source), target_sr=float(fs_mic), res_type = "kaiser_best")
+
         chirp_orig_resampl = re_sampled_orig_chirp_signal
 
     else:  # in the sample rates are identical, no up/down sampling is required
@@ -1667,10 +1680,18 @@ def create_dir_speaker_plot_objects(positions, dir_pattern, scale, color, name):
         azi_flat = spher_coord[:, 0]
         col_flat = spher_coord[:, 1]
 
+        '''
         dir_pattern_obj = CardioidFamily(
             orientation=DirectionVector(azimuth=azi, colatitude=coalt, degrees=True),
             pattern_enum=dir_pattern
         )
+        '''
+
+        dir_pattern_obj = CardioidFamily(
+            orientation=DirectionVector(azimuth=azi, colatitude=coalt, degrees=True),
+            p=dir_pattern,  # e.g., 0.5 for cardioid
+            gain=1.0)
+
 
         # compute response
         resp = dir_pattern_obj.get_response(azimuth=azi_flat, colatitude=col_flat ,magnitude=True, degrees=False)

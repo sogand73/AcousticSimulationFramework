@@ -1,6 +1,6 @@
  {
    "shoebox": true,
-   "room_dim_shoebox": [8.0, 4.0, 2.4],
+   "room_dim_shoebox": [8.64, 4.0, 2.4],
    "room_corners_no_shoebox": [[0,0], [0,4], [8,4], [8,1.5], [6,1.5], [5,0]],
    "room_height_no_shoebox": 2.4,
    "use_given_materials": true,
@@ -20,8 +20,8 @@
    "n_speakers_simultaneous_in_simulation": 1,
    "generate_random_ancher_pos": false,
    "active_anchor_places": [false, true, true, false, true, false],
-   "number_generated_anchors": 4,
-   "number_used_anchors_pos": [4],
+   "number_generated_anchors": 15,
+   "number_used_anchors_pos": [15],
    "anchor_wall_offset": 0.03,
    "dir_anchor_direction": "middle",
    "generate_random_MN_pos": true,

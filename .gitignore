@@ -1,2 +1,5 @@
 *.npy
 *.wav
+__pycache__/localFunctions.cpython-313.pyc
+Sim_data/anchor_positions.csv
+Sim_data/positions_mobile_node.csv
